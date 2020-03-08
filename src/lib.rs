@@ -3,8 +3,21 @@ use seed::{*, prelude::*};
 use getrandom;
 use serde::Deserialize;
 
+#[macro_use]
+extern crate lazy_static;
+
 // Game constants
 static NUM_TRIES: usize = 10;
+
+lazy_static! {
+    static ref BTN_DEFAULT: Attrs = {
+        let mut x = Attrs::empty();
+        x.add_multiple(At::Class, &["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"]);
+        x
+    };
+}
+
+
 
 
 struct Model {
@@ -139,28 +152,76 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
     }
 }
 
+fn link(href: &str, text: &str) -> Node<Msg> {
+    a![
+        class!["underline", "text-blue-400"],
+        attrs!{At::Href => href},
+        text
+    ]
+}
+
 fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Msg> {
     match state {
         AnsweringQuestionState::NotAnswered => {
             div![
-                h3![question.caption],
-                img![attrs!{
-                    At::Src => question.image_url
-                }],
-                button![simple_ev(Ev::Click, Msg::AnswerTrue), " NOT Disney Vacation!" ],
-                button![simple_ev(Ev::Click, Msg::AnswerFalse), " Disney Vacation!" ]
+                class!["container-md", "mx-auto", "content-center", "mt-4"],
+                h3![
+                    class!["text-center", "text-2xl"],
+                    question.caption],
+                div![
+                    class!["container-sm", "m-8", "max-w-xl", "overflow-hidden"],
+                    img![
+                    class!["max-w-xl"],
+                    style!{"margin-bottom" => "-30px", "overflow" => "hidden"},
+                    attrs!{
+                        At::Src => question.image_url
+                    }],
+                    svg![
+                    style!{"width" => "1000px", "height" => "30px"},
+                    rect![attrs!{
+                        At::X => "0",
+                        At::Y => "0",
+                        At::Width => "1000",
+                        At::Height => "30",
+                        At::Stroke => "white",
+                        At::Fill => "white"
+                    }]]
+                ],
+                div![
+                    class!["flex", "flex-row", "justify-center"],
+                    button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::AnswerTrue), " NOT Disney Vacation!" ],
+                    button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::AnswerFalse), " Disney Vacation!" ]
+                ]
             ]
         },
         AnsweringQuestionState::Correct => {
             div![
-                h3!["Correct!!"],
-                button![simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
+                class!["container-md", "mx-auto", "content-center", "mt-4"],
+                h3![
+                    class!["text-center", "text-xl"],
+                    "Correct!!"],
+                p![
+                    class!["text-center"],
+                    link(&question.reddit_url, "reddit link")],
+                p![
+                    class!["text-center"],
+                    link(&question.source_url, "wikihow link")],
+                button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
             ]
         },
         AnsweringQuestionState::Incorrect => {
             div![
-                h3!["Incorrect!! :("],
-                button![simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
+                class!["container-md", "mx-auto", "content-center", "mt-4"],
+                h3![
+                    class!["text-center", "text-xl"],
+                    "Incorrect!! :("],
+                p![
+                    class!["text-center"],
+                    link(&question.reddit_url, "reddit link")],
+                p![
+                    class!["text-center"],
+                    link(&question.source_url, "wikihow link")],
+                button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
             ]          
         }
     }
@@ -169,11 +230,18 @@ fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Ms
 }
 
 fn view(model: &Model) -> impl View<Msg> {
-    match &model.state {
-        State::Started => div![
-                h1![ "Disney Vacation / Not Disney Vacation"],
-                h3![ "The game where you try and guess if ridiculous wikihow captions are real" ],
-                button![simple_ev(Ev::Click, Msg::Start), "Start!" ],
+    let content = match &model.state {
+        State::Started => 
+            div![
+                class!["container-md", "mx-auto", "content-center", "mt-4"],
+                div![
+                    class!["flex", "flex-col", "justify-center", "m-4"],
+                    h1![
+                        class!["text-2xl"],
+                        "Disney Vacation / Not Disney Vacation"],
+                    h3![ "The game where you try and guess if ridiculous wikihow captions are real" ],
+                    button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::Start), "Start!" ],
+                ]
             ],
         State::Loading => h3!["Loading...."],
         State::Playing(ps) => {
@@ -191,13 +259,23 @@ fn view(model: &Model) -> impl View<Msg> {
             };
             
             div![
-                h3!["Game Over!"],
-                h5![result_message],
-                button![simple_ev(Ev::Click, Msg::Start), "Why not another?" ],
+                class!["container-md", "mx-auto", "flex", "flex-col", "justify-center", "mt-4"],
+                h3![
+                    class!["text-xl", "text-center"],
+                    "Game Over!"
+                    ],
+                h5![
+                    class!["text-lg", "text-center"],
+                    result_message],
+                button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::Start), "Why not another?" ],
             ]
             
        }
-    }
+    };
+    div![
+        class!["container-md flex mx-auto"],
+        content
+    ]
 
 }
 
