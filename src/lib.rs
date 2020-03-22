@@ -75,8 +75,17 @@ impl Default for Model {
     }
 }
 
+#[cfg(debug_assertions)]
 async fn fetch_questions() -> Result<Msg, Msg> {
     fetch::Request::new("/questions.json")
+        .method(fetch::Method::Get)
+        .fetch_json_data(Msg::FetchedQuestions)
+        .await
+}
+
+#[cfg(not(debug_assertions))]
+async fn fetch_questions() -> Result<Msg, Msg> {
+    fetch::Request::new("/dv-or-naw/questions.json")
         .method(fetch::Method::Get)
         .fetch_json_data(Msg::FetchedQuestions)
         .await
