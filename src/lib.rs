@@ -244,12 +244,22 @@ fn view(model: &Model) -> impl View<Msg> {
             div![
                 class!["container-md", "mx-auto", "content-center", "mt-4"],
                 div![
-                    class!["flex", "flex-col", "justify-center", "m-4"],
+                    class!["flex", "flex-col", "justify-center", "m-4", "max-w-xl"],
                     h1![
-                        class!["text-2xl"],
+                        class!["text-2xl", "text-center"],
                         "Disney Vacation / Not Disney Vacation"],
-                    h3![ "The game where you try and guess if ridiculous wikihow captions are real" ],
-                    button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::Start), "Start!" ],
+                    h3![
+                        class!["text-xl", "text-center"],
+                        "The game where you try and guess if ridiculous wikihow captions are real" ],
+                    h4![
+                        class!["text-lg", "text-center"],
+                        "How to play:"],
+                    p![
+                        class!["text-center"],
+                        "Each round you'll be given a caption and an image from wikihow. 
+                        If you think it is FAKE click Disney Vacation. If you think it is REAL click NOT 
+                        Disney Vacation. Answer 10 questions and we will give you a score! Good luck!"],
+                    button![class!["text-center", "max-w-xl"], BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::Start), "Start!" ],
                 ]
             ],
         State::Loading => h3!["Loading...."],
