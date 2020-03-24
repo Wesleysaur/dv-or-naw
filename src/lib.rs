@@ -1,23 +1,10 @@
 use seed::browser::service::fetch;
 use seed::{*, prelude::*};
-use getrandom;
+use rand::prelude::*;
 use serde::Deserialize;
-
-#[macro_use]
-extern crate lazy_static;
 
 // Game constants
 static NUM_TRIES: usize = 10;
-
-lazy_static! {
-    static ref BTN_DEFAULT: Attrs = {
-        let mut x = Attrs::empty();
-        x.add_multiple(At::Class, &["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"]);
-        x
-    };
-}
-
-
 
 
 struct Model {
@@ -98,7 +85,7 @@ fn after_mount(_url: Url, orders: &mut impl Orders<Msg>)  -> AfterMount<Model> {
 }
 
 fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
-    
+    let mut rng = thread_rng();
     match model.state {
         State::Started | State::Loading | State::Done(_) => {
             match msg {
@@ -108,7 +95,7 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
                             PlayState{
                                 score:0,
                                 tries:0,
-                                current_question: get_random(model.questions.len()),
+                                current_question: rng.gen_range(0, model.questions.len()),
                                 state:AnsweringQuestionState::NotAnswered,
                         });
                     } else {
@@ -151,7 +138,7 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
                     if ps.tries >= NUM_TRIES {
                         model.state = State::Done(ps.score);
                     } else {
-                        ps.current_question = get_random(model.questions.len());
+                        ps.current_question = rng.gen_range(0, model.questions.len());
                         ps.state = AnsweringQuestionState::NotAnswered;
                     }
                 },
@@ -198,8 +185,10 @@ fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Ms
                 ],
                 div![
                     class!["flex", "flex-row", "justify-center"],
-                    button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::AnswerTrue), " NOT Disney Vacation!" ],
-                    button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::AnswerFalse), " Disney Vacation!" ]
+                    button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
+                        simple_ev(Ev::Click, Msg::AnswerTrue), " NOT Disney Vacation!" ],
+                    button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
+                        simple_ev(Ev::Click, Msg::AnswerFalse), " Disney Vacation!" ]
                 ]
             ]
         },
@@ -215,7 +204,8 @@ fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Ms
                 p![
                     class!["text-center"],
                     link(&question.source_url, "wikihow link")],
-                button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
+                button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
+                    simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
             ]
         },
         AnsweringQuestionState::Incorrect => {
@@ -230,7 +220,8 @@ fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Ms
                 p![
                     class!["text-center"],
                     link(&question.source_url, "wikihow link")],
-                button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
+                button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
+                    simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
             ]          
         }
     }
@@ -259,7 +250,8 @@ fn view(model: &Model) -> impl View<Msg> {
                         "Each round you'll be given a caption and an image from wikihow. 
                         If you think it is FAKE click Disney Vacation. If you think it is REAL click NOT 
                         Disney Vacation. Answer 10 questions and we will give you a score! Good luck!"],
-                    button![class!["text-center", "max-w-xl"], BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::Start), "Start!" ],
+                    button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
+                        simple_ev(Ev::Click, Msg::Start), "Start!" ],
                 ]
             ],
         State::Loading => h3!["Loading...."],
@@ -286,7 +278,8 @@ fn view(model: &Model) -> impl View<Msg> {
                 h5![
                     class!["text-lg", "text-center"],
                     result_message],
-                button![BTN_DEFAULT.to_owned(), simple_ev(Ev::Click, Msg::Start), "Why not another?" ],
+                button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
+                    simple_ev(Ev::Click, Msg::Start), "Why not another?" ],
             ]
             
        }
@@ -297,25 +290,6 @@ fn view(model: &Model) -> impl View<Msg> {
     ]
 
 }
-
-#[cfg(target_arch = "wasm32")]
-fn get_random(max: usize) -> usize {
-    let mut my_bytes: [u8; 4] = [0; 4];
-    if let Ok(_) = getrandom::getrandom(&mut my_bytes) {
-        return usize::from_be_bytes(my_bytes) % max;
-    }
-    0
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn get_random(max: usize) -> usize {
-    let mut my_bytes: [u8; 8] = [0; 8];
-    if let Ok(_) = getrandom::getrandom(&mut my_bytes) {
-        return usize::from_be_bytes(my_bytes) % max;
-    }
-    0
-}
-
 
 #[wasm_bindgen(start)]
 pub fn render() {

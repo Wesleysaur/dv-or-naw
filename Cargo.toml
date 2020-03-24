@@ -12,5 +12,4 @@ crate-type = ["cdylib"]
 seed = "^0.6.0"
 wasm-bindgen = "^0.2.50"
 serde = "1.0.104"
-getrandom = {version = "0.1.14", wasm-bindgen = true}
-lazy_static = "1.4.0"
+rand = {version = "0.7", features = ["wasm-bindgen"]}
