@@ -157,32 +157,32 @@ fn link(href: &str, text: &str) -> Node<Msg> {
 }
 
 fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Msg> {
-    match state {
-        AnsweringQuestionState::NotAnswered => {
-            div![
-                class!["container-md", "mx-auto", "content-center", "mt-4"],
-                h3![
-                    class!["text-center", "text-2xl"],
-                    question.caption],
-                div![
-                    class!["container-sm", "m-8", "max-w-xl", "overflow-hidden"],
-                    img![
-                    class!["max-w-xl"],
-                    style!{"margin-bottom" => "-30px", "overflow" => "hidden"},
-                    attrs!{
-                        At::Src => question.image_url
-                    }],
-                    svg![
-                    style!{"width" => "1000px", "height" => "30px"},
-                    rect![attrs!{
-                        At::X => "0",
-                        At::Y => "0",
-                        At::Width => "1000",
-                        At::Height => "30",
-                        At::Stroke => "white",
-                        At::Fill => "white"
-                    }]]
-                ],
+    div![
+        class!["container-md", "mx-auto", "content-center", "mt-4"],
+        h3![
+            class!["text-center", "text-2xl"],
+            question.caption],
+        div![
+            class!["container-sm", "m-8", "max-w-xl", "overflow-hidden"],
+            img![
+            class!["max-w-xl"],
+            style!{"margin-bottom" => "-30px", "overflow" => "hidden"},
+            attrs!{
+                At::Src => question.image_url
+            }],
+            svg![
+            style!{"width" => "1000px", "height" => "30px"},
+            rect![attrs!{
+                At::X => "0",
+                At::Y => "0",
+                At::Width => "1000",
+                At::Height => "30",
+                At::Stroke => "white",
+                At::Fill => "white"
+            }]]
+        ],
+        match state {
+            AnsweringQuestionState::NotAnswered => {
                 div![
                     class!["flex", "flex-row", "justify-center"],
                     button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
@@ -190,41 +190,43 @@ fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Ms
                     button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
                         simple_ev(Ev::Click, Msg::AnswerFalse), " Disney Vacation!" ]
                 ]
-            ]
-        },
-        AnsweringQuestionState::Correct => {
-            div![
-                class!["container-md", "mx-auto", "content-center", "mt-4"],
-                h3![
-                    class!["text-center", "text-xl"],
-                    "Correct!!"],
-                p![
-                    class!["text-center"],
-                    link(&question.reddit_url, "reddit link")],
-                p![
-                    class!["text-center"],
-                    link(&question.source_url, "wikihow link")],
-                button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
-                    simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
-            ]
-        },
-        AnsweringQuestionState::Incorrect => {
-            div![
-                class!["container-md", "mx-auto", "content-center", "mt-4"],
-                h3![
-                    class!["text-center", "text-xl"],
-                    "Incorrect!! :("],
-                p![
-                    class!["text-center"],
-                    link(&question.reddit_url, "reddit link")],
-                p![
-                    class!["text-center"],
-                    link(&question.source_url, "wikihow link")],
-                button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
-                    simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
-            ]          
+            },
+            AnsweringQuestionState::Correct => {
+                div![
+                    class!["container-md", "max-w-sm", "mx-auto", "content-center", "mt-4", "flex", "flex-col", "items-center"],
+                    h3![
+                        class!["text-center", "text-xl", "bg-green-200"],
+                        "Correct!!"],
+                    button![class!["text-center", "bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
+                        simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
+                    p![
+                        class!["text-center"],
+                        link(&question.reddit_url, "reddit link")],
+                    p![
+                        class!["text-center"],
+                        link(&question.source_url, "wikihow link")],
+
+                ]
+            },
+            AnsweringQuestionState::Incorrect => {
+                div![
+                    class!["container-md", "max-w-sm" "mx-auto", "content-center", "mt-4", "flex", "flex-col", "items-center"],
+                    h3![
+                        class!["text-center", "text-xl", "bg-red-300"],
+                        "Incorrect!! :("],
+                    button![class!["text-center", "bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
+                        simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
+                    p![
+                        class!["text-center"],
+                        link(&question.reddit_url, "reddit link")],
+                    p![
+                        class!["text-center"],
+                        link(&question.source_url, "wikihow link")],
+
+                ]          
+            }
         }
-    }
+    ]
     
 
 }
