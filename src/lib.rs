@@ -10,6 +10,7 @@ static NUM_TRIES: usize = 10;
 struct Model {
     state: State,
     questions: Vec<Question>,
+    shuffled_questions: Vec<Question>
 }
 
 #[derive(Debug)]
@@ -24,7 +25,7 @@ enum State {
 struct PlayState {
     score: usize,
     tries: usize,
-    current_question: usize,
+    current_question: Question,
     state: AnsweringQuestionState,
 }
 
@@ -58,6 +59,7 @@ impl Default for Model {
         Self {
             state: State::Started,
             questions: vec![],
+            shuffled_questions: vec![]
         }
     }
 }
@@ -91,11 +93,13 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
             match msg {
                 Msg::Start => {
                     if model.questions.len() > 0 {
+                        model.shuffled_questions = model.questions.clone();
+                        model.shuffled_questions.shuffle(&mut rng);
                         model.state = State::Playing(
                             PlayState{
                                 score:0,
                                 tries:0,
-                                current_question: rng.gen_range(0, model.questions.len()),
+                                current_question: model.shuffled_questions.pop().unwrap(),
                                 state:AnsweringQuestionState::NotAnswered,
                         });
                     } else {
@@ -116,7 +120,7 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
             match msg {
                 Msg::AnswerTrue => {
                     ps.tries += 1;
-                    if model.questions[ps.current_question].is_real {
+                    if ps.current_question.is_real {
                         // Correct!
                         ps.score += 1;
                         ps.state = AnsweringQuestionState::Correct;
@@ -126,7 +130,7 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
                 },
                 Msg::AnswerFalse => {
                     ps.tries += 1;
-                    if !model.questions[ps.current_question].is_real {
+                    if !ps.current_question.is_real {
                         // Correct!
                         ps.score += 1;
                         ps.state = AnsweringQuestionState::Correct;
@@ -138,7 +142,7 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
                     if ps.tries >= NUM_TRIES {
                         model.state = State::Done(ps.score);
                     } else {
-                        ps.current_question = rng.gen_range(0, model.questions.len());
+                        ps.current_question = model.shuffled_questions.pop().unwrap();
                         ps.state = AnsweringQuestionState::NotAnswered;
                     }
                 },
@@ -258,7 +262,7 @@ fn view(model: &Model) -> impl View<Msg> {
             ],
         State::Loading => h3!["Loading...."],
         State::Playing(ps) => {
-            let ref question: Question = model.questions[ps.current_question];
+            let ref question: Question = ps.current_question;
 
             question_view(question, &ps.state)
         },
