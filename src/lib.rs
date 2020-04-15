@@ -1,16 +1,15 @@
-use seed::browser::service::fetch;
-use seed::{*, prelude::*};
 use rand::prelude::*;
+use seed::browser::service::fetch;
+use seed::{prelude::*, *};
 use serde::Deserialize;
 
 // Game constants
 static NUM_TRIES: usize = 10;
 
-
 struct Model {
     state: State,
     questions: Vec<Question>,
-    shuffled_questions: Vec<Question>
+    shuffled_questions: Vec<Question>,
 }
 
 #[derive(Debug)]
@@ -59,7 +58,7 @@ impl Default for Model {
         Self {
             state: State::Started,
             questions: vec![],
-            shuffled_questions: vec![]
+            shuffled_questions: vec![],
         }
     }
 }
@@ -80,7 +79,7 @@ async fn fetch_questions() -> Result<Msg, Msg> {
         .await
 }
 
-fn after_mount(_url: Url, orders: &mut impl Orders<Msg>)  -> AfterMount<Model> {
+fn after_mount(_url: Url, orders: &mut impl Orders<Msg>) -> AfterMount<Model> {
     orders.perform_cmd(fetch_questions());
     let model = Default::default();
     AfterMount::new(model).url_handling(UrlHandling::None)
@@ -89,32 +88,28 @@ fn after_mount(_url: Url, orders: &mut impl Orders<Msg>)  -> AfterMount<Model> {
 fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
     let mut rng = thread_rng();
     match model.state {
-        State::Started | State::Loading | State::Done(_) => {
-            match msg {
-                Msg::Start => {
-                    if model.questions.len() > 0 {
-                        model.shuffled_questions = model.questions.clone();
-                        model.shuffled_questions.shuffle(&mut rng);
-                        model.state = State::Playing(
-                            PlayState{
-                                score:0,
-                                tries:0,
-                                current_question: model.shuffled_questions.pop().unwrap(),
-                                state:AnsweringQuestionState::NotAnswered,
-                        });
-                    } else {
-                        model.state = State::Loading;
-                    }
-
-                },
-                Msg::FetchedQuestions(Ok(questions)) => {
-                    model.questions = questions;
-                },
-                Msg::FetchedQuestions(Err(reason)) => {
-                    error!("Request Failed!", reason);
-                },
-                _ => {()},
+        State::Started | State::Loading | State::Done(_) => match msg {
+            Msg::Start => {
+                if model.questions.len() > 0 {
+                    model.shuffled_questions = model.questions.clone();
+                    model.shuffled_questions.shuffle(&mut rng);
+                    model.state = State::Playing(PlayState {
+                        score: 0,
+                        tries: 0,
+                        current_question: model.shuffled_questions.pop().unwrap(),
+                        state: AnsweringQuestionState::NotAnswered,
+                    });
+                } else {
+                    model.state = State::Loading;
+                }
             }
+            Msg::FetchedQuestions(Ok(questions)) => {
+                model.questions = questions;
+            }
+            Msg::FetchedQuestions(Err(reason)) => {
+                error!("Request Failed!", reason);
+            }
+            _ => (),
         },
         State::Playing(ref mut ps) => {
             match msg {
@@ -127,7 +122,7 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
                     } else {
                         ps.state = AnsweringQuestionState::Incorrect;
                     }
-                },
+                }
                 Msg::AnswerFalse => {
                     ps.tries += 1;
                     if !ps.current_question.is_real {
@@ -136,8 +131,8 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
                         ps.state = AnsweringQuestionState::Correct;
                     } else {
                         ps.state = AnsweringQuestionState::Incorrect;
-                    }                   
-                },
+                    }
+                }
                 Msg::NextQuestion => {
                     if ps.tries >= NUM_TRIES {
                         model.state = State::Done(ps.score);
@@ -145,17 +140,17 @@ fn update(msg: Msg, model: &mut Model, _orders: &mut impl Orders<Msg>) {
                         ps.current_question = model.shuffled_questions.pop().unwrap();
                         ps.state = AnsweringQuestionState::NotAnswered;
                     }
-                },
-                _ => ()
+                }
+                _ => (),
             }
-        },
+        }
     }
 }
 
 fn link(href: &str, text: &str) -> Node<Msg> {
     a![
         class!["underline", "text-blue-400"],
-        attrs!{At::Href => href},
+        attrs! {At::Href => href},
         text
     ]
 }
@@ -163,76 +158,137 @@ fn link(href: &str, text: &str) -> Node<Msg> {
 fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Msg> {
     div![
         class!["container-md", "mx-auto", "content-center", "mt-4"],
-        h3![
-            class!["text-center", "text-2xl"],
-            question.caption],
+        h3![class!["text-center", "text-2xl"], question.caption],
         div![
             class!["container-sm", "m-8", "max-w-xl", "overflow-hidden"],
             img![
-            class!["max-w-xl"],
-            style!{"margin-bottom" => "-30px", "overflow" => "hidden"},
-            attrs!{
-                At::Src => question.image_url
-            }],
+                class!["max-w-xl"],
+                style! {"margin-bottom" => "-30px", "overflow" => "hidden"},
+                attrs! {
+                    At::Src => question.image_url
+                }
+            ],
             svg![
-            style!{"width" => "1000px", "height" => "30px"},
-            rect![attrs!{
-                At::X => "0",
-                At::Y => "0",
-                At::Width => "1000",
-                At::Height => "30",
-                At::Stroke => "white",
-                At::Fill => "white"
-            }]]
+                style! {"width" => "1000px", "height" => "30px"},
+                rect![attrs! {
+                    At::X => "0",
+                    At::Y => "0",
+                    At::Width => "1000",
+                    At::Height => "30",
+                    At::Stroke => "white",
+                    At::Fill => "white"
+                }]
+            ]
         ],
         match state {
             AnsweringQuestionState::NotAnswered => {
                 div![
                     class!["flex", "flex-row", "justify-center"],
-                    button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
-                        simple_ev(Ev::Click, Msg::AnswerTrue), " NOT Disney Vacation!" ],
-                    button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
-                        simple_ev(Ev::Click, Msg::AnswerFalse), " Disney Vacation!" ]
+                    button![
+                        class![
+                            "bg-blue-500",
+                            "hover:bg-blue-700",
+                            "text-white",
+                            "font-bold",
+                            "py-2",
+                            "px-4",
+                            "rounded",
+                            "m-2"
+                        ],
+                        simple_ev(Ev::Click, Msg::AnswerTrue),
+                        " NOT Disney Vacation!"
+                    ],
+                    button![
+                        class![
+                            "bg-blue-500",
+                            "hover:bg-blue-700",
+                            "text-white",
+                            "font-bold",
+                            "py-2",
+                            "px-4",
+                            "rounded",
+                            "m-2"
+                        ],
+                        simple_ev(Ev::Click, Msg::AnswerFalse),
+                        " Disney Vacation!"
+                    ]
                 ]
-            },
+            }
             AnsweringQuestionState::Correct => {
                 div![
-                    class!["container-md", "max-w-sm", "mx-auto", "content-center", "mt-4", "flex", "flex-col", "items-center"],
+                    class![
+                        "container-md",
+                        "max-w-sm",
+                        "mx-auto",
+                        "content-center",
+                        "mt-4",
+                        "flex",
+                        "flex-col",
+                        "items-center"
+                    ],
                     h3![
                         class!["text-center", "text-xl", "bg-green-200"],
-                        "Correct!!"],
-                    button![class!["text-center", "bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
-                        simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
+                        "Correct!!"
+                    ],
+                    button![
+                        class![
+                            "text-center",
+                            "bg-blue-500",
+                            "hover:bg-blue-700",
+                            "text-white",
+                            "font-bold",
+                            "py-2",
+                            "px-4",
+                            "rounded",
+                            "m-2"
+                        ],
+                        simple_ev(Ev::Click, Msg::NextQuestion),
+                        "Ask Me another"
+                    ],
                     p![
                         class!["text-center"],
-                        link(&question.reddit_url, "reddit link")],
+                        link(&question.reddit_url, "reddit link")
+                    ],
                     p![
                         class!["text-center"],
-                        link(&question.source_url, "wikihow link")],
-
+                        link(&question.source_url, "wikihow link")
+                    ],
                 ]
-            },
+            }
             AnsweringQuestionState::Incorrect => {
                 div![
                     class!["container-md", "max-w-sm" "mx-auto", "content-center", "mt-4", "flex", "flex-col", "items-center"],
                     h3![
                         class!["text-center", "text-xl", "bg-red-300"],
-                        "Incorrect!! :("],
-                    button![class!["text-center", "bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
-                        simple_ev(Ev::Click, Msg::NextQuestion), "Ask Me another" ],
+                        "Incorrect!! :("
+                    ],
+                    button![
+                        class![
+                            "text-center",
+                            "bg-blue-500",
+                            "hover:bg-blue-700",
+                            "text-white",
+                            "font-bold",
+                            "py-2",
+                            "px-4",
+                            "rounded",
+                            "m-2"
+                        ],
+                        simple_ev(Ev::Click, Msg::NextQuestion),
+                        "Ask Me another"
+                    ],
                     p![
                         class!["text-center"],
-                        link(&question.reddit_url, "reddit link")],
+                        link(&question.reddit_url, "reddit link")
+                    ],
                     p![
                         class!["text-center"],
-                        link(&question.source_url, "wikihow link")],
-
-                ]          
+                        link(&question.source_url, "wikihow link")
+                    ],
+                ]
             }
         }
     ]
-    
-
 }
 
 fn view(model: &Model) -> impl View<Msg> {
@@ -290,11 +346,7 @@ fn view(model: &Model) -> impl View<Msg> {
             
        }
     };
-    div![
-        class!["container-md flex mx-auto"],
-        content
-    ]
-
+    div![class!["container-md flex mx-auto"], content]
 }
 
 #[wasm_bindgen(start)]
