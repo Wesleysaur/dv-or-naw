@@ -196,7 +196,7 @@ fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Ms
                             "m-2"
                         ],
                         simple_ev(Ev::Click, Msg::AnswerTrue),
-                        " NOT Disney Vacation!"
+                        "A genuine caption!"
                     ],
                     button![
                         class![
@@ -210,7 +210,7 @@ fn question_view(question: &Question, state: &AnsweringQuestionState) -> Node<Ms
                             "m-2"
                         ],
                         simple_ev(Ev::Click, Msg::AnswerFalse),
-                        " Disney Vacation!"
+                        "A FAKE caption!"
                     ]
                 ]
             }
@@ -310,8 +310,8 @@ fn view(model: &Model) -> impl View<Msg> {
                     p![
                         class!["text-center"],
                         "Each round you'll be given a caption and an image from wikihow. 
-                        If you think it is FAKE click Disney Vacation. If you think it is REAL click NOT 
-                        Disney Vacation. Answer 10 questions and we will give you a score! Good luck!"],
+                        Click the button based on weather you think the caption is from a genuine article,
+                        or was invented by clever people online! Answer 10 questions and we will give you a score! Good luck!"],
                     button![class!["bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded", "m-2"],
                         simple_ev(Ev::Click, Msg::Start), "Start!" ],
                 ]
